@@ -25,9 +25,9 @@ BDC creation can take time.
 <br>_**Cluster deployed successfully.**_
 <br> Except modified via a configuration file (we did not do it) the default BDC name should be **mssql-cluster**.
 
-# Step 3 Save couple of information/handy command
-<br> External IP by running the following command: **kubectl get svc controller-svc-external -n mssql-cluster**
-<br> Log to the BDC by running **azdata login --endpoint https://<ip-address-of-controller-svc-external>:30080 --username <user-name>**
-<br> Get all the endpoints of the BDC by running **azdata bdc endpoint list -o table** or **kubectl get svc -n mssql-cluster**
-<br> Check BDC status **azdata bdc status show**
-<br> Check BDC SQL server services **azdata bdc sql status show**
+# Step 3 Save couple of information/handy commands
+* External IP by running the following command: **kubectl get svc controller-svc-external -n mssql-cluster**
+* Log to the BDC by running **azdata login --endpoint https://<ip-address-of-controller-svc-external>:30080 --username <user-name>**
+* Get all the endpoints of the BDC by running **azdata bdc endpoint list -o table** or **kubectl get svc -n mssql-cluster**
+* Check BDC status **azdata bdc status show**
+* Check BDC SQL server services **azdata bdc sql status show**
