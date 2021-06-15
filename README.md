@@ -31,3 +31,8 @@ BDC creation can take time.
 * Get all the endpoints of the BDC by running **azdata bdc endpoint list -o table** or **kubectl get svc -n mssql-cluster**
 * Check BDC status **azdata bdc status show**
 * Check BDC SQL server services **azdata bdc sql status show**
+ 
+# Resources
+* https://docs.microsoft.com/en-us/sql/big-data-cluster/deployment-guidance?view=sql-server-ver15
+* https://docs.microsoft.com/en-us/sql/big-data-cluster/tutorial-load-sample-data?view=sql-server-ver15
+ 
