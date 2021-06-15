@@ -35,4 +35,5 @@ BDC creation can take time.
 # Resources
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/deployment-guidance?view=sql-server-ver15
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/tutorial-load-sample-data?view=sql-server-ver15
+* https://docs.microsoft.com/en-us/sql/azdata/reference/reference-azdata-bdc?view=sql-server-ver15
  
