@@ -28,7 +28,7 @@ BDC creation can take time.
 
 # Step 3 Save couple of information/handy commands
 * Get External IP by running: **kubectl get svc controller-svc-external -n mssql-cluster**
-* Log to the BDC by running: **azdata login --endpoint https://<ip-address-of-controller-svc-external>:30080 --username <user-name>**
+* Log to the BDC by running: **azdata login --endpoint https://ip-address-of-controller-svc-external:30080 --username <user-name>**
 * Get all the endpoints of the BDC by running: **azdata bdc endpoint list -o table** or **kubectl get svc -n mssql-cluster**
 * Check BDC status **azdata bdc status show**
 * Check BDC SQL server services **azdata bdc sql status show**
