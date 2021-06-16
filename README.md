@@ -18,6 +18,7 @@ You will have different options to create the BDC.
 <br> You can set up Environment Variables before creating the BDC (otherwise it will be asked when creating it)
 <br> **AZDATA_USERNAME** and **AZDATA_PASSWORD** are the environment variavkes to be set
 <br> Choose option number 1 aka AKS \o/ when running the command **azdata bdc create** to create your bdc
+<br> You will be prompted to enter some AKS information
 
 # Step 2 Deployment
 BDC creation can take time.
