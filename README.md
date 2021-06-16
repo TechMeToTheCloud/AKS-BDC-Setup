@@ -44,6 +44,9 @@ BDC creation can take time.
    * Create a Database Scoped Credential
    * Create an external source (SQL server, Oracle, Terradata, etc)
    * Create an external table
+ <br>![image](https://user-images.githubusercontent.com/49620357/122289904-38affe00-cec1-11eb-959b-a330f7db3ab1.png)
+ 
+ 
  
 # Resources
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/deployment-guidance?view=sql-server-ver15
