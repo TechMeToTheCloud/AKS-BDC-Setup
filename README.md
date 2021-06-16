@@ -33,9 +33,17 @@ BDC creation can take time.
 * Check BDC status **azdata bdc status show**
 * Check BDC SQL server services **azdata bdc sql status show**
  
-# Step 4 Load data
- There are multiple ways to load data in BDC.
+# Step 4 Setup Virtualization
+ There are multiple ways to setup the virtualization:
+ * From Azure Data Studio
+ <br> After creating a database you can right click and then choose the "Virtualize Data" option then follow the wizard
+ <br>![image](https://user-images.githubusercontent.com/49620357/122288734-efab7a00-cebf-11eb-899d-1601f8d3a0af.png)
  
+ * Use a SQL script to
+   * Create a Master Key
+   * Create a Database Scoped Credential
+   * Create an external source (SQL server, Oracle, Terradata, etc)
+   * Create an external table
  
 # Resources
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/deployment-guidance?view=sql-server-ver15
