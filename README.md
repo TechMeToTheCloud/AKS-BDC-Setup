@@ -46,6 +46,11 @@ BDC creation can take time.
    * Create an external table
  <br>![image](https://user-images.githubusercontent.com/49620357/122289904-38affe00-cec1-11eb-959b-a330f7db3ab1.png)
  
+ # Step 5 Mount a S3 storage
+  * https://docs.microsoft.com/en-us/sql/big-data-cluster/hdfs-tiering-mount-s3?view=sql-server-ver15
+ 
+ # Step 6 Mount an ADLS storage
+  * https://docs.microsoft.com/en-us/sql/big-data-cluster/hdfs-tiering-mount-adlsgen2?view=sql-server-ver15
  
  
 # Resources
