@@ -33,6 +33,10 @@ BDC creation can take time.
 * Check BDC status **azdata bdc status show**
 * Check BDC SQL server services **azdata bdc sql status show**
  
+# Step 4 Load data
+ There are multiple ways to load data in BDC.
+ 
+ 
 # Resources
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/deployment-guidance?view=sql-server-ver15
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/tutorial-load-sample-data?view=sql-server-ver15
