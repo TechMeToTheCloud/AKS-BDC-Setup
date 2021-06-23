@@ -1,38 +1,164 @@
 # AKS-BDC-Setup
 
-# Prerequisites
-* azdata tool
-  * https://docs.microsoft.com/en-us/sql/azdata/install/deploy-install-azdata?view=sql-server-ver15
-* kubectl command line tool
-  * https://v1-18.docs.kubernetes.io/docs/tasks/tools/install-kubectl/
-* Azure Data Studio
-  * https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver15
-* Data Virtualization extension for Azure Data Studio
-  * https://docs.microsoft.com/en-us/sql/azure-data-studio/extensions/data-virtualization-extension?view=sql-server-ver15
-* A managed Kubernetes container service in Azure
+## AKS Deployment 
 
-# Step 1 BDC creation
+[This is the source](https://docs.microsoft.com/en-us/sql/big-data-cluster/active-directory-deployment-aks-tutorial?view=sql-server-ver15) of the following code.  
+* we did not use an AKS private cluster
+* we are not using AD auth mode
 
-You will have different options to create the BDC.
-<br> You can see the list of options by running the command : **azdata bdc config list -o table**
-<br> You can set up Environment Variables before creating the BDC (otherwise it will be asked when creating it)
-<br> **AZDATA_USERNAME** and **AZDATA_PASSWORD** are the environment variavkes to be set
-<br> Choose option number 1 aka AKS \o/ when running the command **azdata bdc create** to create your bdc
-<br> You will be asked to enter some AKS information
+From shell.azure.com:
 
-# Step 2 Deployment
-BDC creation can take time.
-<br> The final ouput should be:
-<br>_**Cluster deployed successfully.**_
-<br> Except modified via a configuration file (we did not do it) the default BDC name should be **mssql-cluster**.
+```bash
+# change vars as needed
+# this block needs to be rerun if cloudshell times out
+# run `watch ls` in cloudshell to avoid the timeout and ctl+c to abort it
+export SUBSCRIPTION=airs
+export RG=BDC_POC
+export LOCATION=eastus
+export VNET=aks_net
+export ADDR_PREFIX="10.18.0.0/16"
+export SUBNET=bdc_subnet1
+export SUB_PREFIX="10.18.1.0/24"
+export AKS_NAME=BDC-AKS
+export SP_NAME="${LOCATION}_${RG}_${AKS_NAME}"
+az account set --subscription $SUBSCRIPTION
 
-# Step 3 Save couple of information/handy commands
-* Get External IP by running: **kubectl get svc controller-svc-external -n mssql-cluster**
-* Log to the BDC by running: **azdata login --endpoint https://ip-address-of-controller-svc-external:30080 --username <user-name>**
-* Get all the endpoints of the BDC by running: **azdata bdc endpoint list -o table** or **kubectl get svc -n mssql-cluster**
-* Check BDC status **azdata bdc status show**
-* Check BDC SQL server services **azdata bdc sql status show**
- 
+# rg creation
+az group create --name $RG --location $LOCATION
+
+# service principal
+result=$(az ad sp create-for-rbac --skip-assignment --name http://${SP_NAME})
+SP_PRINCIPAL=$(echo $result | jq -r '.appId')
+SP_PWD=$(echo $result | jq -r '.password')
+
+# networking
+az network vnet create \
+  --name $VNET \
+  --resource-group $RG \
+  --address-prefix $ADDR_PREFIX \
+  --subnet-name $SUBNET \
+  --subnet-prefix $SUB_PREFIX
+
+SUBNET_ID=$(az network vnet subnet show \
+ --resource-group $RG \
+ --vnet-name $VNET \
+ --name $SUBNET \
+ --query id -o tsv)
+
+# AKS
+az aks create \
+    --resource-group $RG \
+    --name $AKS_NAME \
+    --load-balancer-sku standard \
+    --network-plugin azure \
+    --vnet-subnet-id $SUBNET_ID \
+    --dns-service-ip 10.18.2.10 \
+    --service-cidr 10.18.2.0/24 \
+    --node-vm-size Standard_D13_v2 \
+    --node-count 8 \
+    --generate-ssh-keys \
+    --service-principal $SP_PRINCIPAL \
+    --client-secret $SP_PWD
+
+# test connectivity
+# this can also be run locally later to add the context to .kube/config file
+az aks get-credentials \
+  --resource-group $RG \
+  --name $AKS_NAME \
+  --overwrite-existing \
+  --admin
+
+# verify we are connected to the correct AKS
+kubectl config current-context
+kubectl get nodes
+
+
+# to delete the Az resources
+# az group delete -g $RG
+```
+
+## SQL BDC Deployment
+
+We are now ready to install BDC using `azdata` but azdata is not available in cloudshell.  
+
+### Prerequisites on local Windows Laptop
+
+* [Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver15)
+  * or run `winget install Microsoft.AzureDataStudio` from an ELEVATED prompt
+* open ADS and install the extension `microsoft.datavirtualization` ([Data Virtualization extension for Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/extensions/data-virtualization-extension?view=sql-server-ver15))
+* [azdata cli tool download](https://aka.ms/azdata-msi)
+* [kubectl command line tool](https://v1-18.docs.kubernetes.io/docs/tasks/tools/install-kubectl/)
+
+
+###  Deployment Options
+
+1. the Wizard in ADS
+    * Help|Welcome and then `Deploy a Server`
+2. `azdata`
+    * this is the method we will use below.  
+
+
+### Deployment from local windows machine
+
+From PoSh:
+
+```powershell
+$RG = "BDC_POC"
+$AKS_NAME = "BDC-AKS"
+$BDC_NAME = "bdc-aks"
+$SUBSCRIPTION = "airs"
+
+az login 
+az account set --subscription $SUBSCRIPTION
+
+az aks get-credentials --resource-group $RG --name $AKS_NAME --overwrite-existing --admin
+kubectl config current-context
+kubectl get nodes
+# we can now connect to AKS from our local machine
+
+# run this if you want to build a new set of configuration files
+# I've done this already and saved the files to ./custom folder in the repo
+azdata bdc config init --source aks-dev-test --target custom --force
+
+# cd to wherever you cloned this repo
+# this will change the bdc name from whatever you generated above
+azdata bdc config replace -p custom\bdc.json -j metadata.name=$BDC_NAME
+# create the cluster
+azdata bdc create -c custom --accept-eula yes
+# admin
+# Password01!!
+
+kubectl get pods -n $BDC_NAME
+azdata login -n $BDC_NAME
+
+# list the endpoints
+azdata bdc endpoint list -o table
+
+# get external IP
+kubectl get svc controller-svc-external -n $BDC_NAME
+# alternative login
+azdata login --endpoint https://IP:30080 --username admin
+
+# healthcheck
+azdata bdc status show
+azdata bdc sql status show
+```
+
+
+
+## Setup 
+
+You can connect to the SQL master instance front-end from ADS by using this syntax: 
+
+`20.81.21.223,31433`
+
+you can find this Endpoint using `azdata bdc endpoint list -o table`
+
+## Next Steps
+
+* [Prep the cluster for data virtualization](virtualization.ipynb):  Open this in ADS and follow along.
+
+
 # Step 4 Setup Virtualization
  There are multiple ways to setup the virtualization:
  * From Azure Data Studio
