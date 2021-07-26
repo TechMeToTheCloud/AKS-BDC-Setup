@@ -61,7 +61,7 @@ az aks create \
     --client-secret $SP_PWD
 
 # test connectivity
-# this can also be run locally later to add the context to .kube/config file
+# this can also be run locally later to add the context to .kube/config file on my laptop
 az aks get-credentials \
   --resource-group $RG \
   --name $AKS_NAME \
@@ -73,7 +73,7 @@ kubectl config current-context
 kubectl get nodes
 
 
-# to delete the Az resources
+# to delete the Az resources later
 # az group delete -g $RG
 ```
 
@@ -118,15 +118,19 @@ kubectl get nodes
 
 # run this if you want to build a new set of configuration files
 # I've done this already and saved the files to ./custom folder in the repo
-azdata bdc config init --source aks-dev-test --target custom --force
+azdata bdc config init --source aks-dev-test --path custom --force
 
 # cd to wherever you cloned this repo
 # this will change the bdc name from whatever you generated above
 azdata bdc config replace -p custom\bdc.json -j metadata.name=$BDC_NAME
+azdata bdc config replace -p custom\control.json -j metadata.name=$BDC_NAME
 # create the cluster
 azdata bdc create -c custom --accept-eula yes
 # admin
 # Password01!!
+
+# to watch the status from cloudshell
+kubectl get pods -n bdc-aks
 
 kubectl get pods -n $BDC_NAME
 azdata login -n $BDC_NAME
@@ -136,26 +140,30 @@ azdata bdc endpoint list -o table
 
 # get external IP
 kubectl get svc controller-svc-external -n $BDC_NAME
+# this is mine:  20.75.133.232
 # alternative login
 azdata login --endpoint https://IP:30080 --username admin
 
 # healthcheck
 azdata bdc status show
 azdata bdc sql status show
+
+# if needed, remove the cluster
+azdata bdc delete --name $BDC_NAME
 ```
-
-
-
 ## Setup 
 
 You can connect to the SQL master instance front-end from ADS by using this syntax: 
-
-`20.81.21.223,31433`
-
 you can find this Endpoint using `azdata bdc endpoint list -o table`
+
+`20.75.131.120,31433`
+
+In ADS you can also connect to the BDC dashboard
 
 ## Next Steps
 
+* [Mount ADLS2 data lake](mount_storage.md)
+* [Mount S3](https://docs.microsoft.com/en-us/sql/big-data-cluster/hdfs-tiering-mount-s3?view=sql-server-ver15)
 * [Prep the cluster for data virtualization](virtualization.ipynb):  Open this in ADS and follow along.
 
 
