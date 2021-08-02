@@ -247,7 +247,7 @@ Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName | Select IpAddress
  <br> After creating a database you can right click and then choose the "Virtualize Data" option then follow the wizard
  <br>![image](https://user-images.githubusercontent.com/49620357/122288734-efab7a00-cebf-11eb-899d-1601f8d3a0af.png)
  
- * Use a SQL script to
+ * Use polybase to
    * Create a Master Key
    * Create a Database Scoped Credential
    * Create an external source (SQL server, Oracle, Terradata, etc)
