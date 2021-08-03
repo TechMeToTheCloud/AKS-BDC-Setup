@@ -163,8 +163,11 @@ In ADS you can also connect to the BDC dashboard
 ## Next Steps
 
 * [Mount ADLS2 data lake](mount_storage.md)
+* [Mount blob storage](mount_blob.md)
 * [Mount S3](https://docs.microsoft.com/en-us/sql/big-data-cluster/hdfs-tiering-mount-s3?view=sql-server-ver15)
 * [Prep the cluster for data virtualization](virtualization.ipynb):  Open this in ADS and follow along.
+* [Connect to on-prem SQL Server](sql.md)
+* [Query Parquet and Delta Files](parquet.md)
 
 
 # Step 4 Setup Virtualization
@@ -191,4 +194,5 @@ In ADS you can also connect to the BDC dashboard
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/deployment-guidance?view=sql-server-ver15
 * https://docs.microsoft.com/en-us/sql/big-data-cluster/tutorial-load-sample-data?view=sql-server-ver15
 * https://docs.microsoft.com/en-us/sql/azdata/reference/reference-azdata-bdc?view=sql-server-ver15
- 
+* https://github.com/microsoft/sql-server-samples/tree/master/samples/features/sql-big-data-cluster 
+* https://docs.microsoft.com/en-us/sql/big-data-cluster/tutorial-load-sample-data?view=sql-server-ver15 
