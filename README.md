@@ -154,11 +154,16 @@ azdata bdc delete --name $BDC_NAME
 ## Setup 
 
 You can connect to the SQL master instance front-end from ADS by using this syntax: 
-you can find this Endpoint using `azdata bdc endpoint list -o table`
+you can find this Endpoint using 
 
 `20.75.131.120,31433`
 
 In ADS you can also connect to the BDC dashboard
+
+## Firewalling
+
+The default is no NSG so everything should connect.  However, that may not be what is desired.  
+
 
 ## Next Steps
 
@@ -183,11 +188,7 @@ In ADS you can also connect to the BDC dashboard
    * Create an external table
  <br>![image](https://user-images.githubusercontent.com/49620357/122289904-38affe00-cec1-11eb-959b-a330f7db3ab1.png)
  
- # Step 5 Mount a S3 storage
-  * https://docs.microsoft.com/en-us/sql/big-data-cluster/hdfs-tiering-mount-s3?view=sql-server-ver15
- 
- # Step 6 Mount an ADLS storage
-  * https://docs.microsoft.com/en-us/sql/big-data-cluster/hdfs-tiering-mount-adlsgen2?view=sql-server-ver15
+
  
  
 # Resources

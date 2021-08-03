@@ -13,7 +13,7 @@ Using wsl:
 ```bash
 # start SQL Server container
 
-docker pull mcr.microsoft.com/mssql/server:2019-CTP3.0-ubuntu
+docker pull mcr.microsoft.com/mssql/server:2019-CU11-ubuntu-20.04
 
 docker run -e 'ACCEPT_EULA=Y' \
    -e 'SA_PASSWORD=Password01!!' \
@@ -21,7 +21,7 @@ docker run -e 'ACCEPT_EULA=Y' \
    -h DockSQL \
    --name DockSQL \
    -d \
-   mcr.microsoft.com/mssql/server:2019-CTP3.0-ubuntu 
+   mcr.microsoft.com/mssql/server:2019-CU11-ubuntu-20.04
 
 
 ```
