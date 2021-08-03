@@ -174,18 +174,99 @@ The default is no NSG so everything should connect.  However, that may not be wh
 * [Connect to on-prem SQL Server](sql.md)
 * [Query Parquet and Delta Files](parquet.md)
 
+## Create a SQL Server on a VM to test virtualization
 
-# Step 4 Setup Virtualization
+```Powershell
+$ResourceGroupName = "sqlvm1"
+$Location = "East US"
+$SubnetName = $ResourceGroupName + "subnet"
+$VnetName = $ResourceGroupName + "vnet"
+$PipName = $ResourceGroupName + $(Get-Random)
+
+#Create a resource group ir required
+New-AzResourceGroup -Name $ResourceGroupName -Location $Location
+
+# Create a subnet configuration
+$SubnetConfig = New-AzVirtualNetworkSubnetConfig -Name $SubnetName -AddressPrefix 192.168.1.0/24
+
+# Create a virtual network
+$Vnet = New-AzVirtualNetwork -ResourceGroupName $ResourceGroupName -Location $Location `
+   -Name $VnetName -AddressPrefix 192.168.0.0/16 -Subnet $SubnetConfig
+
+# Create a public IP address and specify a DNS name
+$Pip = New-AzPublicIpAddress -ResourceGroupName $ResourceGroupName -Location $Location `
+   -AllocationMethod Static -IdleTimeoutInMinutes 4 -Name $PipName
+
+# Rule to allow remote desktop (RDP)
+$NsgRuleRDP = New-AzNetworkSecurityRuleConfig -Name "RDPRule" -Protocol Tcp `
+   -Direction Inbound -Priority 1000 -SourceAddressPrefix * -SourcePortRange * `
+   -DestinationAddressPrefix * -DestinationPortRange 3389 -Access Allow
+
+#Rule to allow SQL Server connections on port 1433
+$NsgRuleSQL = New-AzNetworkSecurityRuleConfig -Name "MSSQLRule"  -Protocol Tcp `
+   -Direction Inbound -Priority 1001 -SourceAddressPrefix * -SourcePortRange * `
+   -DestinationAddressPrefix * -DestinationPortRange 1433 -Access Allow
+
+# Create the network security group
+$NsgName = $ResourceGroupName + "nsg"
+$Nsg = New-AzNetworkSecurityGroup -ResourceGroupName $ResourceGroupName `
+   -Location $Location -Name $NsgName `
+   -SecurityRules $NsgRuleRDP,$NsgRuleSQL
+
+$InterfaceName = $ResourceGroupName + "int"
+$Interface = New-AzNetworkInterface -Name $InterfaceName `
+   -ResourceGroupName $ResourceGroupName -Location $Location `
+   -SubnetId $VNet.Subnets[0].Id -PublicIpAddressId $Pip.Id `
+   -NetworkSecurityGroupId $Nsg.Id
+
+
+# Define a credential object
+#CHANGE THE PASSWORD
+#azureadmin is the login
+$SecurePassword = ConvertTo-SecureString '<password>' `
+   -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential ("azureadmin", $securePassword)
+
+
+# Create a virtual machine configuration
+$VMName = $ResourceGroupName + "VM"
+$VMConfig = New-AzVMConfig -VMName $VMName -VMSize Standard_DS13_V2 |
+   Set-AzVMOperatingSystem -Windows -ComputerName $VMName -Credential $Cred -ProvisionVMAgent -EnableAutoUpdate |
+   Set-AzVMSourceImage -PublisherName "MicrosoftSQLServer" -Offer "SQL2019-WS2019" -Skus "SQLDEV" -Version "latest" |
+   Add-AzVMNetworkInterface -Id $Interface.Id
+
+# Create the VM
+New-AzVM -ResourceGroupName $ResourceGroupName -Location $Location -VM $VMConfig
+
+# Get the existing compute VM
+$vm = Get-AzVM -Name <vm_name> -ResourceGroupName <resource_group_name>
+        
+# Register SQL VM with 'Lightweight' SQL IaaS agent
+New-AzSqlVM -Name $vm.Name -ResourceGroupName $vm.ResourceGroupName -Location $vm.Location `
+  -LicenseType PAYG -SqlManagementType LightWeight
+
+Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName | Select IpAddress
+
+```
+
+# Setup Virtualization
  There are multiple ways to setup the virtualization:
  * From Azure Data Studio
  <br> After creating a database you can right click and then choose the "Virtualize Data" option then follow the wizard
  <br>![image](https://user-images.githubusercontent.com/49620357/122288734-efab7a00-cebf-11eb-899d-1601f8d3a0af.png)
  
- * Use a SQL script to
+ * Use polybase to
    * Create a Master Key
    * Create a Database Scoped Credential
    * Create an external source (SQL server, Oracle, Terradata, etc)
    * Create an external table
+  ```
+  CREATE MASTER KEY ENCRYPTION BY PASSWORD = N'MYPASSORD';
+  CREATE DATABASE SCOPED CREDENTIAL [MYCREDENTIAL]
+    WITH IDENTITY = N'LOGIN', SECRET = N'mySECRET';
+  CREATE EXTERNAL DATA SOURCE [MYREMOTESQLSERVER]
+  WITH (LOCATION = N'sqlserver://MYIP:1433', CREDENTIAL = [MYCREDENTIAL]);
+  ```
  <br>![image](https://user-images.githubusercontent.com/49620357/122289904-38affe00-cec1-11eb-959b-a330f7db3ab1.png)
  
 
