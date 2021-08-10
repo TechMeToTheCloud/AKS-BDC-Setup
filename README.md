@@ -1,5 +1,9 @@
 # AKS-BDC-Setup
 
+branches:
+* `main`:  public AKS with public endpoints
+* `private`:  enable private AKS instructions
+
 ## AKS Deployment 
 
 [This is the source](https://docs.microsoft.com/en-us/sql/big-data-cluster/active-directory-deployment-aks-tutorial?view=sql-server-ver15) of the following code.  
