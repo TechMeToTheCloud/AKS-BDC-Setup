@@ -7,7 +7,7 @@ branches:
 ## AKS Deployment 
 
 [This is the source](https://docs.microsoft.com/en-us/sql/big-data-cluster/active-directory-deployment-aks-tutorial?view=sql-server-ver15) of the following code.  
-* we did not use an AKS private cluster
+* this branch uses an AKS private cluster
 * we are not using AD auth mode
 
 From shell.azure.com:
@@ -16,14 +16,14 @@ From shell.azure.com:
 # change vars as needed
 # this block needs to be rerun if cloudshell times out
 # run `watch ls` in cloudshell to avoid the timeout and ctl+c to abort it
-export SUBSCRIPTION=airs
-export RG=BDC_POC
+export SUBSCRIPTION=davew
+export RG=BDC_POC_private
 export LOCATION=eastus
-export VNET=aks_net
-export ADDR_PREFIX="10.18.0.0/16"
-export SUBNET=bdc_subnet1
-export SUB_PREFIX="10.18.1.0/24"
-export AKS_NAME=BDC-AKS
+export VNET=aks_net_private
+export ADDR_PREFIX="10.38.0.0/16"
+export SUBNET=bdc_subnet1_private
+export SUB_PREFIX="10.38.1.0/24"
+export AKS_NAME=BDC-AKS-PRIVATE
 export SP_NAME="${LOCATION}_${RG}_${AKS_NAME}"
 az account set --subscription $SUBSCRIPTION
 
@@ -62,7 +62,8 @@ az aks create \
     --node-count 8 \
     --generate-ssh-keys \
     --service-principal $SP_PRINCIPAL \
-    --client-secret $SP_PWD
+    --client-secret $SP_PWD \
+    --enable-private-cluster
 
 # test connectivity
 # this can also be run locally later to add the context to .kube/config file on my laptop
