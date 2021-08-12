@@ -8,6 +8,7 @@ branches:
 
 [This is the source](https://docs.microsoft.com/en-us/sql/big-data-cluster/active-directory-deployment-aks-tutorial?view=sql-server-ver15) of the following code.  
 * this branch uses an AKS private cluster
+  * we use a different RG and different vnet for this example (10.38 instead of 10.18)
 * we are not using AD auth mode
 
 From shell.azure.com:
@@ -35,6 +36,10 @@ result=$(az ad sp create-for-rbac --skip-assignment --name http://${SP_NAME})
 SP_PRINCIPAL=$(echo $result | jq -r '.appId')
 SP_PWD=$(echo $result | jq -r '.password')
 
+# d3aee99f-7440-440b-8741-adf9c95c51e3
+# "d3aee99f-7440-440b-8741-adf9c95c51e3", "displayName": "http://eastus_BDC_POC_private_BDC-AKS-PRIVATE", "name": "d3aee99f-7440-440b-8741-adf9c95c51e3", "password": "vF0NpMrqaWrPy3iPG8W.5RG~F69.I.uIGT", "tenant": "72f988bf-86f1-41af-91ab-2d7cd011db47" }
+
+
 # networking
 az network vnet create \
   --name $VNET \
@@ -56,13 +61,14 @@ az aks create \
     --load-balancer-sku standard \
     --network-plugin azure \
     --vnet-subnet-id $SUBNET_ID \
-    --dns-service-ip 10.18.2.10 \
-    --service-cidr 10.18.2.0/24 \
+    --dns-service-ip 10.38.2.10 \
+    --service-cidr 10.38.2.0/24 \
     --node-vm-size Standard_D13_v2 \
     --node-count 8 \
     --generate-ssh-keys \
     --service-principal $SP_PRINCIPAL \
     --client-secret $SP_PWD \
+    --docker-bridge-address 172.17.0.1/16 \
     --enable-private-cluster
 
 # test connectivity
@@ -77,10 +83,17 @@ az aks get-credentials \
 kubectl config current-context
 kubectl get nodes
 
+# this will fail because the aks cluster is private in the vnet and we have no connectivity
+# we need to either connect with Azure Bastion, ssh tunnelling, or a P2S VPN, please see below
+
 
 # to delete the Az resources later
 # az group delete -g $RG
 ```
+
+## Connecting to the AKS private cluster
+
+Please see [connecting to a private cluster](connecting.md) for additional details.  
 
 ## SQL BDC Deployment
 
@@ -108,10 +121,10 @@ We are now ready to install BDC using `azdata` but azdata is not available in cl
 From PoSh:
 
 ```powershell
-$RG = "BDC_POC"
-$AKS_NAME = "BDC-AKS"
-$BDC_NAME = "bdc-aks"
-$SUBSCRIPTION = "airs"
+$RG = "BDC_POC_private"
+$AKS_NAME = "BDC-AKS-PRIVATE"
+$BDC_NAME = "bdc-aks-private"
+$SUBSCRIPTION = "davew"
 
 az login 
 az account set --subscription $SUBSCRIPTION
@@ -127,8 +140,17 @@ azdata bdc config init --source aks-dev-test --path custom --force
 
 # cd to wherever you cloned this repo
 # this will change the bdc name from whatever you generated above
+# see https://docs.microsoft.com/en-us/sql/big-data-cluster/private-deploy?view=sql-server-ver15
 azdata bdc config replace -p custom\bdc.json -j metadata.name=$BDC_NAME
 azdata bdc config replace -p custom\control.json -j metadata.name=$BDC_NAME
+azdata bdc config replace -p custom\control.json -j "$.spec.docker.imageTag=2019-CU6-ubuntu-16.04"
+azdata bdc config replace -p custom\control.json -j "$.spec.storage.data.className=default"
+azdata bdc config replace -p custom\control.json -j "$.spec.storage.logs.className=default"
+azdata bdc config replace -p custom\control.json -j "$.spec.endpoints[0].serviceType=NodePort"
+azdata bdc config replace -p custom\control.json -j "$.spec.endpoints[1].serviceType=NodePort"
+azdata bdc config replace -p custom\bdc.json -j "$.spec.resources.master.spec.endpoints[0].serviceType=NodePort"
+azdata bdc config replace -p custom\bdc.json -j "$.spec.resources.gateway.spec.endpoints[0].serviceType=NodePort"
+azdata bdc config replace -p custom\bdc.json -j "$.spec.resources.appproxy.spec.endpoints[0].serviceType=NodePort"
 # create the cluster
 azdata bdc create -c custom --accept-eula yes
 # admin
